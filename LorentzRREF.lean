@@ -20,14 +20,27 @@ REF:
 3) repeat at next coloumn
 -/
 
+section RREF
+
+variable {K : Type _}
+variable [Field K] [DecidableEq K]
+
 /-- Return the first `pvt >= r` with `A pvt ≠ 0`, or `none` if everything below `r` is `0`  -/
-def findPivot {R : ℕ} {K : Type _} [Field K] [DecidableEq K]
-    (A : Fin R → K) (r : Fin (R + 1)) :
+def findPivot (A : Fin R → K) (r : Fin (R + 1)) :
     Option (Fin R) :=
   Fin.find (fun i ↦ i ≥ r ∧ A i ≠ 0)
 
-def Matrix.RREFTransformation {R C : ℕ} {K : Type _} [Field K] [DecidableEq K]
-    (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1) := 0) :
+def matrixRowSwap (A : Matrix (Fin R) (Fin C) K) (pvt r : Fin R) :
+   Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K := sorry
+
+def matrixRowDilation (A : Matrix (Fin R) (Fin C) K) (r : Fin R) :
+    Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K := sorry
+
+def matrixRowTransvections (A : Matrix (Fin R) (Fin C) K) (r : Fin R) :
+    Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K := sorry
+
+def Matrix.RREFTransformation {R C : ℕ} (A : Matrix (Fin R) (Fin C) K)
+    (r : Fin (R + 1) := 0) :
     Matrix (Fin R) (Fin R) K :=
   match C with
   | 0 => 1
@@ -36,10 +49,12 @@ def Matrix.RREFTransformation {R C : ℕ} {K : Type _} [Field K] [DecidableEq K]
     | .some pvt =>
      let (A', T₁) := matrixRowSwap A pvt r
      let (A'', T₂) := matrixRowDilation A' r
-     let (A''', T₃) := matrixRowTransvections A' r
-    Matrix.RREFTransformation (fun i k => A i (Fin.succ k)) (r + 1) * T₃ * T₂ * T₁
+     let (A''', T₃) := matrixRowTransvections A'' r
+    Matrix.RREFTransformation (fun i k => A''' i (Fin.succ k)) (r + 1) * T₃ * T₂ * T₁
 
 #eval findPivot (![0, 1, 2, 0, 3, 0] : Fin _ → ℚ)
 
-def
+
+end RREF
+
 #eval Matrix.RREFTransformation (!![;] : Matrix (Fin 1) (Fin 0) ℚ)
