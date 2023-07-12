@@ -30,8 +30,20 @@ def findPivot (A : Fin R → K) (r : Fin (R + 1)) :
     Option (Fin R) :=
   Fin.find (fun i ↦ i ≥ r ∧ A i ≠ 0)
 
+def swapRows {M N: ℕ} (Q: Matrix (Fin M) (Fin N) K) (r₁ r₂: (Fin M)): 
+  Matrix (Fin M) (Fin N) K := by
+  let f := (Equiv.swap r₁ r₂)
+  exact fun i j => Q (f i) j
+
+-- def wierdMat := !![(1:ℚ), 2, 3; 4, 5, 6; 7, 8, 9]
+-- #eval swapRows wierdMat 1 2
+
 def matrixRowSwap (A : Matrix (Fin R) (Fin C) K) (pvt r : Fin R) :
-   Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K := sorry
+   Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K :=
+   ⟨swapRows A pvt r, swapRows 1 pvt r⟩
+
+-- #eval matrixRowSwap wierdMat 1 2
+-- #eval (matrixRowSwap wierdMat 1 2).2 * wierdMat = (matrixRowSwap wierdMat 1 2).1
 
 def matrixRowDilation (A : Matrix (Fin R) (Fin C) K) (r : Fin R) :
     Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K := sorry
