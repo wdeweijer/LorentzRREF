@@ -25,6 +25,26 @@ section RREF
 variable {K : Type _}
 variable [Field K] [DecidableEq K]
 
+-- Shouldn't need Decidable
+def isUnitVectorAt (c : Fin R → K) (r : Fin R) : Prop :=
+  ∀ (i : Fin R), i ≠ r ∧ c i = 0 ∨
+                 i = r ∧ c i = 1
+
+def isZeroOnwards (c : Fin R → K) (r : Fin (R + 1)) : Prop :=
+  ∀ i : Fin R, i ≥ r → c i = 0
+
+theorem notBoth (c : Fin R → K) (r : Fin R) : ¬ (isUnitVectorAt c r ∧ isZeroOnwards c r) := by
+  rintro ⟨h1, h0⟩
+  specialize h1 r
+  specialize h0 r
+  suffices ding : (1 = (0 : K))
+  admit
+  rcases h1 with ⟨bang, _⟩ | ⟨_, h1⟩
+  admit
+  rw [← h0 ?_, ← h1]
+  simp
+
+
 /-- Return the first `pvt >= r` with `A pvt ≠ 0`, or `none` if everything below `r` is `0`  -/
 def findPivot (A : Fin R → K) (r : Fin (R + 1)) :
     Option (Fin R) :=
@@ -56,13 +76,16 @@ def Matrix.RREFTransformation {R C : ℕ} (A : Matrix (Fin R) (Fin C) K)
     Matrix (Fin R) (Fin R) K :=
   match C with
   | 0 => 1
-  | C'+1 => match findPivot (fun i => A i 0) r with
-    | .none => Matrix.RREFTransformation (fun i k => A i (Fin.succ k)) r
-    | .some pvt =>
-     let (A', T₁) := matrixRowSwap A pvt r
-     let (A'', T₂) := matrixRowDilation A' r
-     let (A''', T₃) := matrixRowTransvections A'' r
-    Matrix.RREFTransformation (fun i k => A''' i (Fin.succ k)) (r + 1) * T₃ * T₂ * T₁
+  | C'+1 => Fin.lastCases
+    1 -- Done with all the rows, nothing to transform.
+    (fun r => match findPivot (fun i => A i 0) r with
+      | .none => Matrix.RREFTransformation (fun i k => A i (Fin.succ k)) r
+      | .some pvt =>
+       let (A', T₁) := matrixRowSwap A pvt r
+       let (A'', T₂) := matrixRowDilation A' r
+       let (A''', T₃) := matrixRowTransvections A'' r
+      Matrix.RREFTransformation (fun i k => A''' i (Fin.succ k)) (r + 1) * T₃ * T₂ * T₁)
+    r
 
 #eval findPivot (![0, 1, 2, 0, 3, 0] : Fin _ → ℚ)
 
