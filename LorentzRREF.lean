@@ -44,13 +44,16 @@ def Matrix.RREFTransformation {R C : ℕ} (A : Matrix (Fin R) (Fin C) K)
     Matrix (Fin R) (Fin R) K :=
   match C with
   | 0 => 1
-  | C'+1 => match findPivot (fun i => A i 0) r with
-    | .none => Matrix.RREFTransformation (fun i k => A i (Fin.succ k)) r
-    | .some pvt =>
-     let (A', T₁) := matrixRowSwap A pvt r
-     let (A'', T₂) := matrixRowDilation A' r
-     let (A''', T₃) := matrixRowTransvections A'' r
-    Matrix.RREFTransformation (fun i k => A''' i (Fin.succ k)) (r + 1) * T₃ * T₂ * T₁
+  | C'+1 => Fin.lastCases
+    1 -- Done with all the rows, nothing to transform.
+    (fun r => match findPivot (fun i => A i 0) r with
+      | .none => Matrix.RREFTransformation (fun i k => A i (Fin.succ k)) r
+      | .some pvt =>
+       let (A', T₁) := matrixRowSwap A pvt r
+       let (A'', T₂) := matrixRowDilation A' r
+       let (A''', T₃) := matrixRowTransvections A'' r
+      Matrix.RREFTransformation (fun i k => A''' i (Fin.succ k)) (r + 1) * T₃ * T₂ * T₁)
+    r
 
 #eval findPivot (![0, 1, 2, 0, 3, 0] : Fin _ → ℚ)
 
