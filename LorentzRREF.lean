@@ -55,7 +55,7 @@ def swapRows {M N: ℕ} (Q: Matrix (Fin M) (Fin N) K) (r₁ r₂: (Fin M)):
   let f := (Equiv.swap r₁ r₂)
   exact fun i j => Q (f i) j
 
--- def wierdMat := !![(1:ℚ), 2, 3; 4, 5, 6; 7, 8, 9]
+def wierdMat := !![(0.5:ℚ), 2, 3; 4, 5, 6; 7, 8, 9]
 -- #eval swapRows wierdMat 1 2
 
 def matrixRowSwap (A : Matrix (Fin R) (Fin C) K) (pvt r : Fin R) :
@@ -65,8 +65,14 @@ def matrixRowSwap (A : Matrix (Fin R) (Fin C) K) (pvt r : Fin R) :
 -- #eval matrixRowSwap wierdMat 1 2
 -- #eval (matrixRowSwap wierdMat 1 2).2 * wierdMat = (matrixRowSwap wierdMat 1 2).1
 
-def matrixRowDilation (A : Matrix (Fin R) (Fin C) K) (r : Fin R) :
-    Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K := sorry
+def matrixRowDilation (A : Matrix (Fin R) (Fin (C + 1)) K) (r : Fin R) :
+    Matrix (Fin R) (Fin (C + 1)) K × Matrix (Fin R) (Fin R) K := by
+    let a := A r 0
+    let v := fun (i: Fin R) => ite (i = r) (1/a) 1
+    let A' := (Matrix.diagonal v).mul A
+    exact ⟨ A' , (Matrix.diagonal v)⟩
+
+#eval matrixRowDilation wierdMat 1
 
 def matrixRowTransvections (A : Matrix (Fin R) (Fin C) K) (r : Fin R) :
     Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K := sorry
