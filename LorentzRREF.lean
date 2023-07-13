@@ -34,6 +34,12 @@ def IsUnitVectorAt (c : Fin R → K) (r : Fin R) : Prop :=
 def IsZeroOnwards (c : Fin R → K) (r : Fin (R + 1)) : Prop :=
   ∀ i : Fin R, i ≥ r → c i = 0
 
+instance (c : Fin R → K) (r : Fin R) : Decidable (IsUnitVectorAt c r) := by
+  unfold IsUnitVectorAt; infer_instance
+
+instance (c : Fin R → K) (r : Fin (R + 1)) : Decidable (IsZeroOnwards c r) := by
+  unfold IsZeroOnwards; infer_instance
+
 theorem notBoth (c : Fin R → K) (r : Fin R) : ¬ (IsUnitVectorAt c r ∧ IsZeroOnwards c r) := by
   rintro ⟨h1, h0⟩
   have h0 : c r = 0
@@ -52,6 +58,9 @@ def IsRREF (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1) := 0) : Prop :=
       IsZeroOnwards  (fun i => A i 0) r ∧ IsRREF (fun i k => A i (Fin.succ k)) r)
     r
 
+--                        Why? vvvvvv
+theorem empty_IsRREF : IsRREF (K := K) !![] := by unfold IsRREF ; trivial
+
 /-- Return the first `pvt >= r` with `A pvt ≠ 0`, or `none` if everything below `r` is `0`  -/
 def findPivot (A : Fin R → K) (r : Fin (R + 1)) :
     Option (Fin R) :=
@@ -62,15 +71,12 @@ def swapRows {M N: ℕ} (Q: Matrix (Fin M) (Fin N) K) (r₁ r₂: (Fin M)):
   let f := (Equiv.swap r₁ r₂)
   exact fun i j => Q (f i) j
 
-def wierdMat := !![(0.5:ℚ), 2, 3; 4, 5, 6; 7, 8, 9]
--- #eval swapRows wierdMat 1 2
+-- theorem IsZeroOnwards_swapRows_inv (c : Fin R → K) : IsZeroOnwards c r → IsZeroOnwards (swapRows)
 
 def matrixRowSwap (A : Matrix (Fin R) (Fin C) K) (pvt r : Fin R) :
   Matrix (Fin R) (Fin C) K × Matrix (Fin R) (Fin R) K :=
   ⟨swapRows A pvt r, swapRows 1 pvt r⟩
 
--- #eval matrixRowSwap wierdMat 1 2
--- #eval (matrixRowSwap wierdMat 1 2).2 * wierdMat = (matrixRowSwap wierdMat 1 2).1
 
 def matrixRowDilation (A : Matrix (Fin R) (Fin (C + 1)) K) (r : Fin R) :
   Matrix (Fin R) (Fin (C + 1)) K × Matrix (Fin R) (Fin R) K := by
@@ -78,8 +84,6 @@ def matrixRowDilation (A : Matrix (Fin R) (Fin (C + 1)) K) (r : Fin R) :
   let v := fun (i: Fin R) => ite (i = r) (1/a) 1
   let A' := (Matrix.diagonal v).mul A
   exact ⟨ A' , (Matrix.diagonal v)⟩
-
-#eval matrixRowDilation wierdMat 1
   
 open BigOperators Matrix
 
@@ -89,9 +93,6 @@ def matrixRowTransvections (A : Matrix (Fin R) (Fin (C + 1)) K) (r : Fin R) :
   let T := ((List.finRange R).map fun i => 
     (ite (i = r) 1 (Matrix.transvection i r (-A i 0)))).prod
   exact ⟨T ⬝ A, T⟩
-
-def wierdMat1 := !![(2:ℚ), 2, 3; 1, 5, 6; 7, 8, 9]
-#eval (matrixRowTransvections wierdMat1 1)
 
 def Matrix.RREFTransformation {R C : ℕ} (A : Matrix (Fin R) (Fin C) K)
     (r : Fin (R + 1) := 0) :
@@ -109,9 +110,25 @@ def Matrix.RREFTransformation {R C : ℕ} (A : Matrix (Fin R) (Fin C) K)
       Matrix.RREFTransformation (fun i k => A''' i (Fin.succ k)) (r + 1) * T₃ * T₂ * T₁)
     r
 
-#eval findPivot (![0, 1, 2, 0, 3, 0] : Fin _ → ℚ)
-
+theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1)):
+    IsRREF ((RREFTransformation A r).mul A) r := by
+  
+  induction' C with C' ih generalizing r; triv
+  unfold IsRREF
+  induction' hyp_equal : r using Fin.lastCases with r' <;> simp
+  set opvt := findPivot (fun i => A i 0) r with h
+  rcases opvt with why | pvt
+  · right; constructor
+    · unfold RREFTransformation IsZeroOnwards
+      simp
+      intros i hr'i
+      rw [←hyp_equal, ←h]
+      dsimp
+      rw [mul_apply]
+      sorry
+    · skip
+      -- apply ih
+      sorry
+  · sorry
 
 end RREF
-
-#eval Matrix.RREFTransformation (!![;] : Matrix (Fin 1) (Fin 0) ℚ)
