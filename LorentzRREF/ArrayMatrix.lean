@@ -101,3 +101,26 @@ def t1 := !![1, 0, 0, -4, 1, 0, 2, 0, 1]
 def step1_c := ArrayMat.dropFirstColumns 1 step1.toArrayMat
 
 #eval matrixRowDilation step1_c 1
+variable (m n)
+#check Fin n → Fin m → ℕ
+
+#check (Fin n × Fin m) → ℕ
+
+#check (Fin n → Fin m) → ℕ
+
+
+instance : GetElem (ArrayMat m n α) (Fin m × Fin n) α (fun _ _ => True) :=
+⟨fun m i _ => Function.uncurry m.get_elem i⟩
+
+instance [Repr α] : Repr (ArrayMat m n α) where
+  reprPrec f _p :=
+    (Std.Format.bracket "@[" · "]") <|
+      (Std.Format.joinSep · (";\n")) <|
+        (List.finRange m).map fun i =>
+          Std.Format.fill <|  -- wrap line in a single place rather than all at once
+            (Std.Format.joinSep · ("," ++ Std.Format.line)) <|
+            (List.finRange n).map fun j => _root_.repr f[(i,j)]
+
+
+            
+#eval repr (matrixRowDilation step1_c 1)
