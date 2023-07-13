@@ -26,7 +26,6 @@ section RREF
 variable {K : Type _}
 variable [Field K] [DecidableEq K]
 
--- Shouldn't need Decidable
 def IsUnitVectorAt (c : Fin R → K) (r : Fin R) : Prop :=
   ∀ (i : Fin R), i ≠ r ∧ c i = 0 ∨
                  i = r ∧ c i = 1
@@ -61,25 +60,55 @@ def IsRREF (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1) := 0) : Prop :=
 --                        Why? vvvvvv
 theorem empty_IsRREF : IsRREF (K := K) !![] := by unfold IsRREF ; trivial
 
+-- These should move to ArrayMatrix.lean
+@[simp]
+theorem tomat_toarray (A : Matrix (Fin m) (Fin n) K) : A.toArrayMat.toMatrix = A := by sorry
+
+@[simp]
+theorem am_mul_corr (A : Matrix (Fin m) (Fin n) K) (B : Matrix (Fin n) (Fin p) K) :
+    (A.toArrayMat.mul B.toArrayMat).toMatrix = A.mul B := by sorry
+
+theorem m_mul_ar_mat (A : ArrayMat m n K) (B : Matrix (Fin n) (Fin p) K) :
+    (A.mul B.toArrayMat).toMatrix = A.toMatrix.mul B := by sorry
+
+theorem ar_get_el_corr (A : Matrix (Fin m) (Fin n) K) (i : Fin m) (j : Fin n ):
+    ArrayMat.get_elem (Matrix.toArrayMat A) i j = A i j := by sorry
+
 theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
-    IsRREF (A.RREF) := by sorry
-    
-  -- induction' C with C' ih generalizing r; triv
-  -- unfold IsRREF
-  -- induction' hyp_equal : r using Fin.lastCases with r' <;> simp
-  -- set opvt := findPivot (fun i => A i 0) r with h
-  -- rcases opvt with why | pvt
-  -- · right; constructor
-  --   · unfold RREFTransformation IsZeroOnwards
-  --     simp
-  --     intros i hr'i
-  --     rw [←hyp_equal, ←h]
-  --     dsimp
-  --     rw [mul_apply]
-  --     sorry
-  --   · skip
-  --     -- apply ih
-  --     sorry
-  -- · sorry
+    IsRREF (A.RREF) := by
+  unfold Matrix.RREF
+  rw [m_mul_ar_mat]
+  generalize (0 : Fin (R + 1)) = r -- r will grow in the pivot case
+  induction' C with C' ih generalizing r; triv
+  unfold IsRREF
+  induction' hyp_equal : r using Fin.lastCases with r' <;> simp
+  set opvt := findPivot (fun i => ArrayMat.get_elem (Matrix.toArrayMat A) i 0) r with h --ugly
+  rcases opvt with why | pvt
+  · right; constructor
+    · unfold Matrix.RREFTransformation' IsZeroOnwards; simp
+      intros i hr'i
+      rw [if_neg (ne_of_lt (Fin.castSuccEmb_lt_last _))]
+      rw [←hyp_equal] -- needed?
+      rw [←h]; dsimp
+      -- rw [mul_apply]
+      -- show that applying RREF from r leaves an IsZeroOnwards r column invariant?
+      sorry
+    · -- use induction hyp ih
+      sorry
+  · left; constructor
+    · unfold Matrix.RREFTransformation' IsUnitVectorAt; simp
+      intros i
+      rw [if_neg (ne_of_lt (Fin.castSuccEmb_lt_last _))] -- same as before, reuse
+      rw [←hyp_equal] -- needed?
+      rw [←h]; dsimp
+      have : i = r' ∨ ¬ i = r' := by sorry
+      cases this -- make terser
+      · right; constructor; assumption
+        sorry
+      · left; constructor; assumption
+        sorry
+    · -- use induction
+      sorry
+  done
 
 end RREF
