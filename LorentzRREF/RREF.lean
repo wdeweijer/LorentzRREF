@@ -1,4 +1,3 @@
-import Mathlib
 import LorentzRREF.ArrayMatrix
 
 variable {K: Type}[Field K][DecidableEq K]

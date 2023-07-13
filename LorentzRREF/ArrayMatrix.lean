@@ -1,4 +1,5 @@
-import Mathlib
+import Mathlib.LinearAlgebra.Matrix.Transvection
+import Mathlib.Tactic
 
 def ArrayVec (n : ℕ) (α : Type) := { x: Array α // x.size = n}
 
