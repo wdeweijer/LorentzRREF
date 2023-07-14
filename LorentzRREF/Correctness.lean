@@ -100,7 +100,7 @@ theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
   set opvt := findPivot (fun i => ArrayMat.get_elem (Matrix.toArrayMat A) i 0) r with h --ugly
   rcases opvt with why | pvt
   · right; constructor
-    · unfold Matrix.RREFTransformation' IsZeroOnwards; simp
+    · unfold ArrayMat.RREFTransformation' IsZeroOnwards; simp
       intros i hr'i
       rw [if_neg (ne_of_lt (Fin.castSuccEmb_lt_last _))]
       rw [←hyp_equal] -- needed?
@@ -111,16 +111,16 @@ theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
     · -- use induction hyp ih
       sorry
   · left; constructor
-    · unfold Matrix.RREFTransformation' IsUnitVectorAt; simp
+    · unfold ArrayMat.RREFTransformation' IsUnitVectorAt; simp
       intros i
       rw [if_neg (ne_of_lt (Fin.castSuccEmb_lt_last _))] -- same as before, reuse
       rw [←hyp_equal] -- needed?
       -- rw [←h]; dsimp
       have : i = r' ∨ ¬ i = r' := by sorry
       cases this -- make terser
-      · right; constructor; assumption
+      · -- right; constructor; assumption
         sorry
-      · left; constructor; assumption
+      · -- left; constructor; assumption
         sorry
     · -- use induction
       sorry
