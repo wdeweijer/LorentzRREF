@@ -14,7 +14,7 @@ def Matrix.doColumnRREFTransform {R C : ℕ}(A : ArrayMat R (C + 1) K) (r pvt: F
   let (A''', T₃) := matrixRowTransvections A'' r
   ⟨A''', T₃  * T₂ *  T₁⟩
 
-def Matrix.RREFTransformation' {R C : ℕ}(A : ArrayMat R C K)
+def ArrayMat.RREFTransformation' {R C : ℕ}(A : ArrayMat R C K)
     (r : Fin (R + 1) := 0) :
     ArrayMat R R K :=
   match C with
@@ -26,7 +26,7 @@ def Matrix.RREFTransformation' {R C : ℕ}(A : ArrayMat R C K)
       | .none => ArrayMat.RREFTransformation' (ArrayMat.dropFirstColumns 1 A) r
       | .some pvt =>
        let ⟨A''', Tx⟩ := Matrix.doColumnRREFTransform A r pvt
-      (Matrix.RREFTransformation' (ArrayMat.dropFirstColumns 1 A''') (r + 1)) * Tx)
+      (ArrayMat.RREFTransformation' (ArrayMat.dropFirstColumns 1 A''') (r + 1)) * Tx)
 
 def Matrix.RREFTransformation {R C : ℕ} (A: Matrix (Fin R) (Fin C) K) :
   Matrix (Fin R) (Fin R) K := (ArrayMat.RREFTransformation' A.toArrayMat).toMatrix
