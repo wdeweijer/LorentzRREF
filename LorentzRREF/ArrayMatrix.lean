@@ -110,6 +110,22 @@ instance ArrayMat.instOne {m: ℕ} : One (ArrayMat m m α) where
 instance ArrayMat.instMul {m: ℕ} : Mul (ArrayMat m m α) where
   mul := ArrayMat.mul
 
+instance  ArrayMat.instPow {m: ℕ} :Pow (ArrayMat m m α) ℕ where
+  pow A n := (A.toMatrix ^ n).toArrayMat
+
+instance ArrayMat.instMonoid {m: ℕ} : Monoid (ArrayMat m m α) :=
+  Function.Surjective.monoid (Matrix.toArrayMat) sorry sorry sorry sorry
+
+@[simp]
+theorem ArrayMat.toMatrix_one: (1: ArrayMat m m α).toMatrix = 1 := by 
+  apply tomat_toarray
+
+
+@[simp]
+theorem ArrayMat.one_mul {m n: ℕ} (B: ArrayMat m n α): (1: ArrayMat m m α).mul B = B := by
+  unfold ArrayMat.mul
+  simp only [toMatrix_one, Matrix.one_mul, toarray_tomat]
+
 def ArrayMat.mul'_elem {m n p: ℕ} (A: ArrayMat m n α) (B: ArrayMat n p α) 
   (k: Fin (m*p)): α := by
   let i := k.divNat 

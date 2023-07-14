@@ -27,8 +27,9 @@ variable {K : Type _}
 variable [Field K] [DecidableEq K]
 
 def IsUnitVectorAt (c : Fin R → K) (r : Fin R) : Prop :=
-  ∀ (i : Fin R), i ≠ r ∧ c i = 0 ∨
-                 i = r ∧ c i = 1
+  -- ∀ (i : Fin R), i ≠ r ∧ c i = 0 ∨
+  --                i = r ∧ c i = 1
+  ∀ (i : Fin R), if i = r then c i = 1 else c i = 0
 
 def IsZeroOnwards (c : Fin R → K) (r : Fin (R + 1)) : Prop :=
   ∀ i : Fin R, i ≥ r → c i = 0
@@ -60,6 +61,34 @@ def IsRREF (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1) := 0) : Prop :=
 --                        Why? vvvvvv
 theorem empty_IsRREF : IsRREF (K := K) !![] := by unfold IsRREF ; trivial
 
+theorem matrixRowTransvections_ind_nonmodify: sorry := sorry
+
+
+lemma Matrix.doColumnRREFTransform_Correct {R C : ℕ} (A : ArrayMat R (C + 1) K) (r pvt: Fin R) 
+  (hnz: A.get_elem pvt 0 ≠ 0):
+    -- let TA := Matrix.doColumnRREFTransform A r pvt
+    IsUnitVectorAt (fun i : (Fin R) => (Matrix.doColumnRREFTransform A r pvt).1.get_elem i 0) r := by
+  intros i
+  -- unfold IsUnitVectorAt
+  have s1 : (matrixRowSwap A pvt r).1.get_elem r 0 ≠ 0 := by
+    sorry
+  have s2 : (matrixRowDilation (matrixRowSwap A pvt r).1 r).1.get_elem r 0 = 1 := by
+    sorry
+  
+  split_ifs with h
+  unfold doColumnRREFTransform
+  dsimp
+  unfold matrixRowTransvections
+  dsimp
+  induction' R with R IH
+  simp only [Nat.zero_eq, List.map, List.prod_nil]
+  simp only [ArrayMat.one_mul]
+  rw [h]
+  exact s2
+  
+  
+
+
 theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
     IsRREF (A.RREF) := by
   unfold Matrix.RREF
@@ -75,7 +104,7 @@ theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
       intros i hr'i
       rw [if_neg (ne_of_lt (Fin.castSuccEmb_lt_last _))]
       rw [←hyp_equal] -- needed?
-      rw [←h]; dsimp
+      -- rw [←h]; dsimp
       -- rw [mul_apply]
       -- show that applying RREF from r leaves an IsZeroOnwards r column invariant?
       sorry
@@ -86,7 +115,7 @@ theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
       intros i
       rw [if_neg (ne_of_lt (Fin.castSuccEmb_lt_last _))] -- same as before, reuse
       rw [←hyp_equal] -- needed?
-      rw [←h]; dsimp
+      -- rw [←h]; dsimp
       have : i = r' ∨ ¬ i = r' := by sorry
       cases this -- make terser
       · right; constructor; assumption
@@ -96,5 +125,6 @@ theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
     · -- use induction
       sorry
   done
+
 
 end RREF
