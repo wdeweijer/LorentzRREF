@@ -87,8 +87,16 @@ lemma one_tv_invariant (r i : Fin R)(c : K) (hir : i ≠ r):
   simp only [Matrix.of_apply]
   exact hir.symm
 
-lemma tv_mul_apply (A: ArrayMat R C K)(r i : Fin R) (c: K):
-  Matrix.transvection r i c
+lemma tv_mul_apply (A: ArrayMat R C K)(r i : Fin R) (c: K)(j: Fin C):
+  ((Matrix.transvection i r c).toArrayMat.mul A).get_elem i j = 
+  (A.get_elem i j) + c * (A.get_elem r j) := by
+  unfold ArrayMat.mul
+  simp only [tomat_toarray, ar_get_el_corr]
+  unfold Matrix.transvection
+  rw [Matrix.add_mul, Matrix.one_mul, Matrix.add_apply, Matrix.mul_apply]
+  unfold Matrix.stdBasisMatrix
+  simp only [true_and, ite_mul, zero_mul, Finset.sum_ite_eq, Finset.mem_univ, ite_true]
+  congr
 
 lemma isRowPreserve_one {R: ℕ}(r: Fin R) : isRowPreserve (1: ArrayMat R R K) r := sorry 
 
@@ -152,7 +160,17 @@ lemma Matrix.doColumnRREFTransform_Correct {R C : ℕ} (A : ArrayMat R (C + 1) K
     rw [ArrayMat.mul_mul_assoc_left]
     rw [matrixRowTransvections_ind_nonmodify]
     rw [ArrayMat.mul_mul_assoc_left]
+    rw [tv_mul_apply]
+    rw [neg_mul,← sub_eq_add_neg]
+    rw [matrixRowTransvections_ind_nonmodify]
+    rw [matrixRowTransvections_ind_nonmodify]
+    rw [s2, mul_one, sub_self]
+    intros tv htv
+    intros C A j
     
+    sorry
+    sorry
+
 
 theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
     IsRREF (A.RREF) := by
