@@ -25,11 +25,44 @@ def ArrayMat.get_elem {m n : ℕ} {α : Type} (A: ArrayMat m n α) (i: Fin m) (j
     simp only [add_pos_iff, or_true]
     linarith ⟩ -- Row Major Order
 
+@[ext] theorem ArrayMat.ext {m n : ℕ} {α : Type} (A B: ArrayMat m n α) :
+  (∀ (i: Fin m)(j: Fin n), A.get_elem i j = B.get_elem i j) → A = B := by
+  intros h
+  apply Subtype.ext
+  apply Array.ext
+  simp only [size]
+  intros k hka hkb
+  let k' : Fin (m*n) := ⟨k, by simpa only [size] using hka⟩
+  unfold get_elem at h
+  simp only [Array.get_eq_getElem, Array.getElem_ofFn] at h
+  convert h k'.divNat k'.modNat 
+  <;> simp only [Fin.coe_divNat, Fin.coe_modNat, mul_comm, Nat.div_add_mod]
+
+
 def Matrix.toArrayMat {m n: ℕ}{α: Type} (A: Matrix (Fin m) (Fin n) α): ArrayMat m n α := 
   ⟨Array.ofFn (fun k: (Fin (m*n)) => A k.divNat k.modNat), Array.size_ofFn _ ⟩
 
+@[simp]
 theorem ar_get_el_corr {m n: ℕ}{α: Type} (A : Matrix (Fin m) (Fin n) α) (i : Fin m) (j : Fin n ):
-    ArrayMat.get_elem (Matrix.toArrayMat A) i j = A i j := by sorry
+    ArrayMat.get_elem (Matrix.toArrayMat A) i j = A i j := by
+    cases' m with m; fin_cases i
+    cases' n with n; fin_cases j
+
+    unfold Matrix.toArrayMat ArrayMat.get_elem
+    simp only [Array.get_eq_getElem, Array.getElem_ofFn]
+    congr <;> ext <;> dsimp
+    · rw [Nat.add_div, if_neg]
+      simp only [add_zero]
+      rw [Nat.mul_div_cancel, Nat.div_eq_of_lt, add_zero]
+      exact Fin.prop j
+      simp only [Nat.succ_pos']
+      simp only [Nat.mul_mod_left, zero_add, not_le]
+      apply Nat.mod_lt
+      simp only [gt_iff_lt, Nat.succ_pos']
+      simp only [Nat.succ_pos']
+    · rw [Nat.add_mod]
+      simp only [Nat.mul_mod_left, zero_add, Nat.mod_mod, Nat.mod_succ_eq_iff_lt, Fin.is_lt]
+        
 
 def ArrayMat.dropFirstColumns {m n: ℕ} (z: ℕ) (A: ArrayMat (m) (n + z) α) : 
   (ArrayMat m n α) :=
@@ -45,17 +78,30 @@ def ArrayMat.toMatrix {m n: ℕ} (A: ArrayMat m n α) : Matrix (Fin m) (Fin n) �
 
 -- These should move to ArrayMatrix.lean
 @[simp]
-theorem tomat_toarray (A : Matrix (Fin m) (Fin n) K) : A.toArrayMat.toMatrix = A := by sorry
+theorem tomat_toarray (A : Matrix (Fin m) (Fin n) α) : A.toArrayMat.toMatrix = A := by
+  ext i j
+  apply ar_get_el_corr
+
+#check tomat_toarray
+
+@[simp]
+lemma toarray_tomat {m n: ℕ} (A : ArrayMat m n α) : A.toMatrix.toArrayMat = A := by
+  
+
 
 def ArrayMat.mul {m n p: ℕ} (A: ArrayMat m n α) (B: ArrayMat n p α) : 
   (ArrayMat m p α) := (A.toMatrix ⬝ B.toMatrix).toArrayMat
 
 @[simp]
 theorem am_mul_corr (A : Matrix (Fin m) (Fin n) α) (B : Matrix (Fin n) (Fin p) α) :
-    (A.toArrayMat.mul B.toArrayMat).toMatrix = A.mul B := by sorry
+    (A.toArrayMat.mul B.toArrayMat).toMatrix = A.mul B := by
+  unfold ArrayMat.mul
+  simp only [tomat_toarray]
 
 theorem m_mul_ar_mat (A : ArrayMat m n α) (B : Matrix (Fin n) (Fin p) α) :
-    (A.mul B.toArrayMat).toMatrix = A.toMatrix.mul B := by sorry
+    (A.mul B.toArrayMat).toMatrix = A.toMatrix.mul B := by
+  unfold ArrayMat.mul
+  simp only [tomat_toarray]
 
 instance ArrayMat.instOne {m: ℕ} : One (ArrayMat m m α) where
   one := (1: Matrix (Fin m) (Fin m) α).toArrayMat
