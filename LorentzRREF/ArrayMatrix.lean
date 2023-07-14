@@ -86,8 +86,8 @@ theorem tomat_toarray (A : Matrix (Fin m) (Fin n) α) : A.toArrayMat.toMatrix = 
 
 @[simp]
 lemma toarray_tomat {m n: ℕ} (A : ArrayMat m n α) : A.toMatrix.toArrayMat = A := by
-  
-
+  ext
+  simp only [ar_get_el_corr, ArrayMat.toMatrix, of_apply]
 
 def ArrayMat.mul {m n p: ℕ} (A: ArrayMat m n α) (B: ArrayMat n p α) : 
   (ArrayMat m p α) := (A.toMatrix ⬝ B.toMatrix).toArrayMat
