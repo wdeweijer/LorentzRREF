@@ -60,20 +60,6 @@ def IsRREF (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1) := 0) : Prop :=
 --                        Why? vvvvvv
 theorem empty_IsRREF : IsRREF (K := K) !![] := by unfold IsRREF ; trivial
 
--- These should move to ArrayMatrix.lean
-@[simp]
-theorem tomat_toarray (A : Matrix (Fin m) (Fin n) K) : A.toArrayMat.toMatrix = A := by sorry
-
-@[simp]
-theorem am_mul_corr (A : Matrix (Fin m) (Fin n) K) (B : Matrix (Fin n) (Fin p) K) :
-    (A.toArrayMat.mul B.toArrayMat).toMatrix = A.mul B := by sorry
-
-theorem m_mul_ar_mat (A : ArrayMat m n K) (B : Matrix (Fin n) (Fin p) K) :
-    (A.mul B.toArrayMat).toMatrix = A.toMatrix.mul B := by sorry
-
-theorem ar_get_el_corr (A : Matrix (Fin m) (Fin n) K) (i : Fin m) (j : Fin n ):
-    ArrayMat.get_elem (Matrix.toArrayMat A) i j = A i j := by sorry
-
 theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
     IsRREF (A.RREF) := by
   unfold Matrix.RREF

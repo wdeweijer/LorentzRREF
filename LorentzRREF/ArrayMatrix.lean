@@ -28,8 +28,8 @@ def ArrayMat.get_elem {m n : ℕ} {α : Type} (A: ArrayMat m n α) (i: Fin m) (j
 def Matrix.toArrayMat {m n: ℕ}{α: Type} (A: Matrix (Fin m) (Fin n) α): ArrayMat m n α := 
   ⟨Array.ofFn (fun k: (Fin (m*n)) => A k.divNat k.modNat), Array.size_ofFn _ ⟩
 
-
-
+theorem ar_get_el_corr {m n: ℕ}{α: Type} (A : Matrix (Fin m) (Fin n) α) (i : Fin m) (j : Fin n ):
+    ArrayMat.get_elem (Matrix.toArrayMat A) i j = A i j := by sorry
 
 def ArrayMat.dropFirstColumns {m n: ℕ} (z: ℕ) (A: ArrayMat (m) (n + z) α) : 
   (ArrayMat m n α) :=
@@ -43,8 +43,19 @@ variable {α: Type}[Semiring α]
 def ArrayMat.toMatrix {m n: ℕ} (A: ArrayMat m n α) : Matrix (Fin m) (Fin n) α := 
   (Matrix.of fun i j => A.get_elem i j)
 
+-- These should move to ArrayMatrix.lean
+@[simp]
+theorem tomat_toarray (A : Matrix (Fin m) (Fin n) K) : A.toArrayMat.toMatrix = A := by sorry
+
 def ArrayMat.mul {m n p: ℕ} (A: ArrayMat m n α) (B: ArrayMat n p α) : 
   (ArrayMat m p α) := (A.toMatrix ⬝ B.toMatrix).toArrayMat
+
+@[simp]
+theorem am_mul_corr (A : Matrix (Fin m) (Fin n) α) (B : Matrix (Fin n) (Fin p) α) :
+    (A.toArrayMat.mul B.toArrayMat).toMatrix = A.mul B := by sorry
+
+theorem m_mul_ar_mat (A : ArrayMat m n α) (B : Matrix (Fin n) (Fin p) α) :
+    (A.mul B.toArrayMat).toMatrix = A.toMatrix.mul B := by sorry
 
 instance ArrayMat.instOne {m: ℕ} : One (ArrayMat m m α) where
   one := (1: Matrix (Fin m) (Fin m) α).toArrayMat
