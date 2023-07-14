@@ -61,8 +61,59 @@ def IsRREF (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1) := 0) : Prop :=
 --                        Why? vvvvvv
 theorem empty_IsRREF : IsRREF (K := K) !![] := by unfold IsRREF ; trivial
 
-theorem matrixRowTransvections_ind_nonmodify: sorry := sorry
+def isRowPreserve {R: ℕ}(B: ArrayMat R R K) (r: Fin R) := 
+  ∀ {C: ℕ}(A: ArrayMat R C K) (j: Fin C), (B.mul A).get_elem r j = A.get_elem r j
 
+open BigOperators
+theorem mul_left_apply_of_ne' {m n K: Type}[Ring K]
+  [Fintype m][Fintype n][DecidableEq m][DecidableEq n](c: K)
+  (i: m)(j : m)(a : m)(b: n) (h : a ≠ i) (M : Matrix m n K) :
+    ((Matrix.stdBasisMatrix i j c).mul M) a b = 0 := by
+  rw [Matrix.mul_apply]
+  unfold Matrix.stdBasisMatrix
+  simp only [ite_mul, zero_mul]
+  rw [Finset.sum_eq_zero]
+  simp [h.symm]
+
+lemma one_tv_invariant (r i : Fin R)(c : K) (hir : i ≠ r):
+    isRowPreserve (Matrix.transvection i r c).toArrayMat r := by
+  intros C A j 
+  unfold ArrayMat.mul
+  simp only [tomat_toarray, ar_get_el_corr]
+  unfold Matrix.transvection
+  rw [Matrix.add_mul, Matrix.one_mul, Matrix.add_apply]
+  rw [mul_left_apply_of_ne', add_zero]
+  unfold ArrayMat.toMatrix
+  simp only [Matrix.of_apply]
+  exact hir.symm
+
+lemma tv_mul_apply (A: ArrayMat R C K)(r i : Fin R) (c: K):
+  Matrix.transvection r i c
+
+lemma isRowPreserve_one {R: ℕ}(r: Fin R) : isRowPreserve (1: ArrayMat R R K) r := sorry 
+
+lemma isRowPreserve_mul {R: ℕ}(r: Fin R) (A B: ArrayMat R R K) : 
+  isRowPreserve A r → isRowPreserve B r → isRowPreserve (A.mul B) r := sorry
+
+theorem matrixRowTransvections_ind_nonmodify 
+  (Tv: List (ArrayMat R R K)) (pvt: Fin R)
+  (hL: ∀ tv ∈ Tv, isRowPreserve tv pvt): 
+  isRowPreserve Tv.prod pvt
+  := by 
+  induction' Tv with H T ih
+  simp only [List.prod_nil, isRowPreserve_one]
+  simp only [List.prod_cons]
+  apply isRowPreserve_mul
+  apply hL
+  simp only [List.find?, List.mem_cons, true_or]
+  apply ih
+  intros x hx
+  apply hL
+  simp only [List.find?, List.mem_cons]
+  right; exact hx
+
+lemma ArrayMat.mul_mul_assoc_left {R C: ℕ}(A B: ArrayMat R R K)(M: ArrayMat R C K):
+  (A*B).mul M = A.mul (B.mul M) := sorry
 
 lemma Matrix.doColumnRREFTransform_Correct {R C : ℕ} (A : ArrayMat R (C + 1) K) (r pvt: Fin R) 
   (hnz: A.get_elem pvt 0 ≠ 0):
@@ -76,18 +127,32 @@ lemma Matrix.doColumnRREFTransform_Correct {R C : ℕ} (A : ArrayMat R (C + 1) K
     sorry
   
   split_ifs with h
-  unfold doColumnRREFTransform
-  dsimp
-  unfold matrixRowTransvections
-  dsimp
-  induction' R with R IH
-  simp only [Nat.zero_eq, List.map, List.prod_nil]
-  simp only [ArrayMat.one_mul]
-  rw [h]
-  exact s2
-  
-  
-
+  · subst h
+    unfold doColumnRREFTransform
+    dsimp
+    unfold matrixRowTransvections
+    dsimp
+    rw [matrixRowTransvections_ind_nonmodify, s2]
+    simp_rw [List.mem_map ]
+    rintro tv ⟨ a, ha₁, ha₂⟩
+    split_ifs at ha₂ with h
+    rw [← ha₂]
+    apply isRowPreserve_one
+    rw [← ha₂]
+    apply one_tv_invariant
+    exact h
+  · unfold doColumnRREFTransform matrixRowTransvections
+    dsimp
+    have : i ∈ List.finRange R := by exact List.mem_finRange i
+    rw [List.mem_iff_append ] at this
+    rcases this with ⟨s, t, hst⟩
+    rw [hst]
+    simp only [List.map_append, List.map, h, ite_false, 
+      List.prod_append, List.prod_cons]
+    rw [ArrayMat.mul_mul_assoc_left]
+    rw [matrixRowTransvections_ind_nonmodify]
+    rw [ArrayMat.mul_mul_assoc_left]
+    
 
 theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
     IsRREF (A.RREF) := by
