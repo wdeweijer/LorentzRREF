@@ -164,23 +164,23 @@ def exMat :=
 !![(1:ℚ), 2, 3; 
   4, 5, 7; 
   -2, 0, 3;]
-#eval swapRows exMat.toArrayMat 0 2
-#eval matrixRowSwap exMat.toArrayMat 0 2
-#eval matrixRowDilation exMat.toArrayMat 1
-#eval matrixRowTransvections exMat.toArrayMat 0
+-- #eval swapRows exMat.toArrayMat 0 2
+-- #eval matrixRowSwap exMat.toArrayMat 0 2
+-- #eval matrixRowDilation exMat.toArrayMat 1
+-- #eval matrixRowTransvections exMat.toArrayMat 0
 
 def step1 := !![(1:ℚ), 2, 3; 0, -3, -5; 0, 4, 9] 
 def t1 := !![1, 0, 0, -4, 1, 0, 2, 0, 1]
 
 def step1_c := ArrayMat.dropFirstColumns 1 step1.toArrayMat
 
-#eval matrixRowDilation step1_c 1
+-- #eval matrixRowDilation step1_c 1
 variable (m n)
-#check Fin n → Fin m → ℕ
+-- #check Fin n → Fin m → ℕ
 
-#check (Fin n × Fin m) → ℕ
+-- #check (Fin n × Fin m) → ℕ
 
-#check (Fin n → Fin m) → ℕ
+-- #check (Fin n → Fin m) → ℕ
 
 
 instance : GetElem (ArrayMat m n α) (Fin m × Fin n) α (fun _ _ => True) :=
@@ -197,4 +197,4 @@ instance [Repr α] : Repr (ArrayMat m n α) where
 
 
             
-#eval repr (matrixRowDilation step1_c 1)
+-- #eval repr (matrixRowDilation step1_c 1)

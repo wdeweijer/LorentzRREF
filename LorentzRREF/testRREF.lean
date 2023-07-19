@@ -1,4 +1,5 @@
 import LorentzRREF.RREF
+import LorentzRREF.Correctness
 
 def wierdMat1 := (!![(1:ℚ), 3, 1, 9; 1, 1, -1, 1; 3, 11, 5, 35])
 
@@ -15,5 +16,6 @@ def wierdMat4 := (!![(0:ℚ), 0, 0, 1; 0, 0, 1, 0; 0, 1, 0, 0;])
 #eval wierdMat1.toArrayMat      -- Original Matrix
 #eval wierdMat1.RREFTransformation.toArrayMat       -- Transformation Matrix
 #eval wierdMat1.RREF        -- Reduced Row Echelon Form
+#eval IsRREF (wierdMat1.RREF)
 #eval wierdMat1.toArrayMat.RREFTransformation'
 

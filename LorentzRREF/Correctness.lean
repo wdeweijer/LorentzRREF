@@ -51,12 +51,16 @@ theorem notBoth (c : Fin R → K) (r : Fin R) : ¬ (IsUnitVectorAt c r ∧ IsZer
 def IsRREF (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1) := 0) : Prop :=
   match C with
   | 0 => True
-  | C + 1 => Fin.lastCases
-    True
-    (fun r =>
+  | C + 1 => if h : r = Fin.last R
+    then True
+    else (let r : Fin R := ⟨r.val, by exact Fin.val_lt_last h⟩
       IsUnitVectorAt (fun i => A i 0) r ∧ IsRREF (fun i k => A i (Fin.succ k)) (Fin.succ r) ∨
       IsZeroOnwards  (fun i => A i 0) r ∧ IsRREF (fun i k => A i (Fin.succ k)) r)
-    r
+
+instance (A : Matrix (Fin R) (Fin C) K) (r : Fin (R + 1)) : Decidable (IsRREF A r) := by
+  induction' C generalizing r <;> dsimp [IsRREF]
+  infer_instance
+  by_cases r = Fin.last R <;> infer_instance  
 
 --                        Why? vvvvvv
 theorem empty_IsRREF : IsRREF (K := K) !![] := by unfold IsRREF ; trivial
@@ -170,7 +174,11 @@ lemma Matrix.doColumnRREFTransform_Correct {R C : ℕ} (A : ArrayMat R (C + 1) K
     
     sorry
     sorry
+    sorry
 
+theorem IsRREF_monotone (A : Matrix (Fin R) (Fin C) K) (r : Fin R) :
+    IsRREF A ↑(Fin.castSuccEmb r') → IsRREF A r.succ := by
+  sorry
 
 theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
     IsRREF (A.RREF) := by
@@ -178,35 +186,42 @@ theorem RREF_CorrectForm (A : Matrix (Fin R) (Fin C) K):
   rw [m_mul_ar_mat]
   generalize (0 : Fin (R + 1)) = r -- r will grow in the pivot case
   induction' C with C' ih generalizing r; triv
-  unfold IsRREF
-  induction' hyp_equal : r using Fin.lastCases with r' <;> simp
-  set opvt := findPivot (fun i => ArrayMat.get_elem (Matrix.toArrayMat A) i 0) r with h --ugly
-  rcases opvt with why | pvt
+  dsimp [IsRREF]
+  induction' r using Fin.lastCases with r' <;> simp
+  have hr_notLast : (↑(Fin.castSuccEmb r') ≠ Fin.last R) :=
+    ne_of_lt (Fin.castSuccEmb_lt_last _)
+  rw [dif_neg hr_notLast]
+  have cutmul : -- Yikes!
+    (fun i k =>
+      Matrix.mul
+        (ArrayMat.toMatrix (ArrayMat.RREFTransformation' (Matrix.toArrayMat A) ↑(Fin.castSuccEmb r')))
+        A
+          i (Fin.succ k))
+    = Matrix.mul
+      (ArrayMat.toMatrix (ArrayMat.RREFTransformation' (Matrix.toArrayMat (fun i k => A i k.succ)) ↑(Fin.castSuccEmb r')))
+      (fun i k => A i (Fin.succ k)) := by sorry
+  set opvt := findPivot (fun i => A i 0) (↑(Fin.castSuccEmb r')) with h
+  rcases opvt with why | pvt --ugly
   · right; constructor
-    · unfold ArrayMat.RREFTransformation' IsZeroOnwards; simp
+    · simp [ArrayMat.RREFTransformation', IsZeroOnwards]
       intros i hr'i
-      rw [if_neg (ne_of_lt (Fin.castSuccEmb_lt_last _))]
-      rw [←hyp_equal] -- needed?
-      -- rw [←h]; dsimp
-      -- rw [mul_apply]
-      -- show that applying RREF from r leaves an IsZeroOnwards r column invariant?
-      sorry
-    · -- use induction hyp ih
-      sorry
+      rw [if_neg hr_notLast]
+      rw [←h]; dsimp
+      sorry -- show that applying RREF from r leaves an IsZeroOnwards r column invariant?
+    · rw [cutmul]
+      apply ih
   · left; constructor
-    · unfold ArrayMat.RREFTransformation' IsUnitVectorAt; simp
+    · simp [ArrayMat.RREFTransformation', IsUnitVectorAt]
       intros i
-      rw [if_neg (ne_of_lt (Fin.castSuccEmb_lt_last _))] -- same as before, reuse
-      rw [←hyp_equal] -- needed?
-      -- rw [←h]; dsimp
-      have : i = r' ∨ ¬ i = r' := by sorry
-      cases this -- make terser
-      · -- right; constructor; assumption
-        sorry
-      · -- left; constructor; assumption
-        sorry
-    · -- use induction
-      sorry
+      rw [if_neg hr_notLast]
+      rw [←h]; dsimp
+      split_ifs with hir'
+      · sorry
+      · sorry
+    · rw [cutmul]
+      generalize (fun i k => A i (Fin.succ k)) = A'
+      apply IsRREF_monotone
+      apply ih
   done
 
 
