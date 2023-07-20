@@ -19,3 +19,6 @@ def wierdMat4 := (!![(0:ℚ), 0, 0, 1; 0, 0, 1, 0; 0, 1, 0, 0;])
 #eval IsRREF (wierdMat1.RREF)
 #eval wierdMat1.toArrayMat.RREFTransformation'
 
+def bigMat1 := fun (i : Fin 12) (j : Fin 12) => (1 : ℚ) + 3*i + 2*j + 5*i*j
+#eval Matrix.toArrayMat bigMat1
+-- #eval Matrix.RREF bigMat1

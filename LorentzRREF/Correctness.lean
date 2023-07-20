@@ -40,6 +40,13 @@ instance (c : Fin R → K) (r : Fin R) : Decidable (IsUnitVectorAt c r) := by
 instance (c : Fin R → K) (r : Fin (R + 1)) : Decidable (IsZeroOnwards c r) := by
   unfold IsZeroOnwards; infer_instance
 
+theorem IsZeroOnwards_monotone (c : Fin R → K) (r : Fin R) :
+    IsZeroOnwards c r → IsZeroOnwards c r.succ := by
+  simp only [IsZeroOnwards, Fin.coe_eq_castSuccEmb]
+  intros h i hgt
+  apply h
+  exact le_of_lt hgt
+
 theorem notBoth (c : Fin R → K) (r : Fin R) : ¬ (IsUnitVectorAt c r ∧ IsZeroOnwards c r) := by
   rintro ⟨h1, h0⟩
   have h0 : c r = 0
